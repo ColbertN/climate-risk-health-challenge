@@ -126,8 +126,11 @@ def run_training(data_dir: str | Path = ".", report_dir: str | Path = "reports",
     final_model.save_model(str(model_path / "catboost_final.cbm"))
     joblib.dump({"features": X.columns.tolist(), "categorical": categorical, "numeric": numeric}, model_path / "feature_schema.joblib")
 
-    with (report_path / "run_summary.json").open("w", encoding="utf-8") as handle:
+    with (report_path / f"{run_name}_run_summary.json").open("w", encoding="utf-8") as handle:
         json.dump(overall, handle, indent=2)
+    if run_name == "catboost_all_features":
+        with (report_path / "run_summary.json").open("w", encoding="utf-8") as handle:
+            json.dump(overall, handle, indent=2)
     return overall
 
 

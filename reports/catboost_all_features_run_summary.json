@@ -1,0 +1,12 @@
+{
+  "f1_default_0_5": 0.8049476688867745,
+  "roc_auc": 0.8135752491606483,
+  "weighted_score": 0.808398700996324,
+  "n_train": 3146,
+  "n_test": 1030,
+  "n_features": 63,
+  "n_categorical": 8,
+  "seeds": [
+    17
+  ]
+}

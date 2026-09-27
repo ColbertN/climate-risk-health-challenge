@@ -25,7 +25,7 @@ def build_submission(ids: pd.Series, probabilities: np.ndarray) -> pd.DataFrame:
     )
     if submission["ID"].duplicated().any():
         raise ValueError("Submission IDs are not unique")
-    if submission["TargetF1"].isin([0, 1]).all() is False:
+    if not bool(submission["TargetF1"].isin([0, 1]).all()):
         raise ValueError("TargetF1 must be binary")
     if not ((submission["TargetRAUC"] >= 0) & (submission["TargetRAUC"] <= 1)).all():
         raise ValueError("TargetRAUC must be in [0, 1]")

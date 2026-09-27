@@ -12,7 +12,7 @@ The final candidate is a deterministic CatBoost ensemble over five stratified fo
 | ROC-AUC | `ROC-AUC(y, probability)` | **0.8136** |
 | Weighted score | `0.60 * F1 + 0.40 * ROC-AUC` | **0.8084** |
 
-The latest reproducible submission is written to [`submissions/catboost_ensemble_submission.csv`](submissions/catboost_ensemble_submission.csv) after running the pipeline. No probability rounding or custom threshold is used.
+The primary reproducible submission is [`submissions/catboost_all_features_submission.csv`](submissions/catboost_all_features_submission.csv); the selected-20 challenger is [`submissions/catboost_selected20_submission.csv`](submissions/catboost_selected20_submission.csv). No probability rounding or custom threshold is used.
 
 ## EDA at a glance
 
