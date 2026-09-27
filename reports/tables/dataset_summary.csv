@@ -1,0 +1,4 @@
+table,rows,columns
+Train,3146,13
+Test,1030,12
+Climate features,4176,18

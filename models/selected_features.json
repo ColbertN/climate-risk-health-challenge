@@ -1,0 +1,25 @@
+{
+  "n_features": 20,
+  "features": [
+    "year",
+    "age_band",
+    "age",
+    "age_sq",
+    "gender",
+    "daily_temp_center_error",
+    "max_daily_rain_30d",
+    "tavg_30d",
+    "ndvi_90d",
+    "diurnal_temp_range",
+    "rain_sum_30d",
+    "rain_7_to_30",
+    "temp_7_vs_30",
+    "district",
+    "min_temperature",
+    "rain_30_to_90",
+    "tmin_30d",
+    "rain_sum_90d",
+    "ndvi_30d",
+    "rain_intensity_30d"
+  ]
+}

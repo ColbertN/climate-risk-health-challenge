@@ -1,0 +1,21 @@
+# Challenge data and local model outputs
+Train.csv
+Test.csv
+SampleSubmission.csv
+climate_features.csv
+data_dictionary.csv
+downloaded_climate_features_data_dictionary.csv
+project overview.txt
+data description.txt
+Additional comments from participants.txt
+climate_health_starter_notebook_.ipynb
+models/*.cbm
+models/*.joblib
+__pycache__/
+*.pyc
+.venv/
+.env
+.DS_Store
+
+# Keep generated charts/tables only when explicitly force-added for the public report.
+reports/raw/

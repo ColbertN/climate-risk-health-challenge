@@ -1,0 +1,6 @@
+model,validation_protocol,n_features,f1_default_0_5,roc_auc,weighted_score,decision
+CatBoost all engineered features,5-fold stratified CV,63,0.804948,0.813575,0.808399,primary submission
+CatBoost selected top 20 features,5-fold stratified CV,20,0.802011,0.814758,0.807110,retained as challenger
+CatBoost selected top 20 features,2-fold subset search,20,0.810064,0.815116,0.812085,selection estimate only
+CatBoost regularized depth 7,2-fold explicit search,63,0.808792,0.811075,0.809705,tuning winner
+CatBoost balanced depth 6,2-fold explicit search,63,0.809371,0.809550,0.809443,tuning challenger

@@ -1,0 +1,15 @@
+group_type,group,count,positive_rate
+gender,Female,1501,0.6715522984676882
+gender,Male,1645,0.6316109422492401
+zone,Peri_urban,1174,0.6405451448040886
+zone,Rural,1972,0.6566937119675457
+district,Bikadho Road,418,0.631578947368421
+district,Bugweri,199,0.6381909547738693
+district,Entebbe City,13,0.8461538461538461
+district,Entebbe Road,41,0.6585365853658537
+district,Iganga,1766,0.6568516421291053
+district,Kaliro Road,155,0.632258064516129
+district,Kasonga,128,0.6484375
+district,Mayuge,207,0.6618357487922706
+district,Mbale City,158,0.6392405063291139
+district,Namakunyu,61,0.639344262295082

@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "checks": {
+    "columns_exact": true,
+    "row_count_matches_test": true,
+    "ids_match_test_order": true,
+    "ids_unique": true,
+    "target_f1_binary": true,
+    "probabilities_finite": true,
+    "probabilities_in_unit_interval": true,
+    "labels_match_default_threshold": true
+  },
+  "rows": 1030,
+  "positive_labels": 717,
+  "probability_min": 0.1868326357689385,
+  "probability_max": 0.9692351679232432
+}

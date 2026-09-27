@@ -1,0 +1,3 @@
+name,f1_default_0_5,roc_auc,weighted_score,depth,learning_rate,l2_leaf_reg,random_strength
+regularized_depth7,0.8087919480851777,0.8110745218340227,0.8097049775847158,7,0.025,10.0,0.7
+balanced_depth6,0.8093714898340032,0.8095502575205051,0.8094429969086039,6,0.035,6.0,0.5
