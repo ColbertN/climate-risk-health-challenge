@@ -11,7 +11,7 @@
     "labels_match_default_threshold": true
   },
   "rows": 1030,
-  "positive_labels": 717,
-  "probability_min": 0.1868326357689385,
-  "probability_max": 0.9692351679232432
+  "positive_labels": 714,
+  "probability_min": 0.1917964022319298,
+  "probability_max": 0.9517242451086056
 }

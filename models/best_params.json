@@ -1,8 +1,8 @@
 {
   "name": "regularized_depth7",
-  "f1_default_0_5": 0.8087919480851777,
-  "roc_auc": 0.8110745218340227,
-  "weighted_score": 0.8097049775847158,
+  "f1_default_0_5": 0.8081583084309365,
+  "roc_auc": 0.8107210444587273,
+  "weighted_score": 0.8091834028420528,
   "depth": 7,
   "learning_rate": 0.025,
   "l2_leaf_reg": 10.0,

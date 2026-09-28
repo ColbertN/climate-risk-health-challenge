@@ -1,0 +1,21 @@
+{
+  "source": "NASA POWER Daily API",
+  "source_url": "https://power.larc.nasa.gov/docs/services/api/temporal/daily/point/",
+  "parameters": [
+    "T2M",
+    "T2M_MAX",
+    "T2M_MIN",
+    "T2MDEW",
+    "PRECTOTCORR",
+    "RH2M",
+    "WS10M",
+    "ALLSKY_SFC_SW_DWN",
+    "EVPTRNS",
+    "GWETTOP",
+    "GWETROOT"
+  ],
+  "grid_resolution_degrees": 0.5,
+  "start": "20070703",
+  "end": "20221213",
+  "rows": 4176
+}

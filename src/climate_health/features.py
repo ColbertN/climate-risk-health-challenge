@@ -36,6 +36,18 @@ def load_competition_data(data_dir: str | Path = ".") -> tuple[pd.DataFrame, pd.
     return train, test, climate
 
 
+def load_external_features(data_dir: str | Path = ".") -> pd.DataFrame | None:
+    """Load cached climate-only NASA POWER features when they have been downloaded."""
+
+    path = Path(data_dir) / "data" / "external" / "nasa_power_features.csv"
+    if not path.exists():
+        return None
+    external = pd.read_csv(path)
+    if ID_COL not in external or external[ID_COL].duplicated().any():
+        raise ValueError("NASA POWER feature cache must have unique ID values")
+    return external
+
+
 def _safe_ratio(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
     denominator = denominator.replace(0, np.nan)
     return numerator / denominator
@@ -55,6 +67,7 @@ def build_features(
     frame: pd.DataFrame,
     climate: pd.DataFrame,
     combined_for_counts: pd.DataFrame | None = None,
+    external_features: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Create model-ready features.
 
@@ -66,6 +79,9 @@ def build_features(
     base = frame.copy()
     climate_only = climate.drop(columns=[DATE_COL], errors="ignore")
     data = base.merge(climate_only, on=ID_COL, how="left", validate="one_to_one")
+    if external_features is not None:
+        external_only = external_features.drop(columns=[DATE_COL], errors="ignore")
+        data = data.merge(external_only, on=ID_COL, how="left", validate="one_to_one")
     date = pd.to_datetime(data[DATE_COL], errors="coerce")
 
     data["year"] = date.dt.year.astype("float64")
@@ -112,6 +128,19 @@ def build_features(
     data["ndvi_change"] = data["ndvi_30d"] - data["ndvi_90d"]
     data["heat_stress_proxy"] = data["tmax_30d"] * (1 + data["hot_day_share"])
     data["wet_heat_proxy"] = data["tavg_30d"] * (1 + data["rain_days_30d"] / 30.0)
+
+    # Independent NASA POWER weather summaries and cross-source contrasts.
+    if "power_t2m_mean_30d" in data:
+        data["power_temp_7_vs_30"] = data["power_t2m_mean_7d"] - data["power_t2m_mean_30d"]
+        data["power_temp_90_vs_30"] = data["power_t2m_mean_90d"] - data["power_t2m_mean_30d"]
+        data["power_rh_7_vs_30"] = data["power_rh_mean_7d"] - data["power_rh_mean_30d"]
+        data["power_wind_7_vs_30"] = data["power_wind_mean_7d"] - data["power_wind_mean_30d"]
+        data["power_rain_30_to_90"] = _safe_ratio(data["power_rain_sum_30d"], data["power_rain_sum_90d"])
+        data["power_rain_log_30d"] = np.log1p(data["power_rain_sum_30d"].clip(lower=0))
+        data["power_moisture_deficit_30d"] = data["power_t2m_mean_30d"] - data["power_dewpoint_mean_30d"]
+        data["power_heat_humidity_proxy"] = data["power_t2m_mean_30d"] * (1 + data["power_rh_mean_30d"] / 100.0)
+        data["power_solar_temp_30d"] = data["power_solar_mean_30d"] * data["power_t2m_mean_30d"]
+        data["power_tmax_tmin_range_30d"] = data["power_tmax_max_30d"] - data["power_tmin_max_30d"]
 
     # Smooth spatial coordinates retain broad geography while avoiding high-cardinality
     # exact-coordinate memorisation.

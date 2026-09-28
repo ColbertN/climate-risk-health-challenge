@@ -8,11 +8,11 @@ The final candidate is a deterministic CatBoost ensemble over five stratified fo
 
 | Metric | Definition | Final run |
 |---|---|---:|
-| F1 | `F1(y, probability >= 0.5)` | **0.8049** |
-| ROC-AUC | `ROC-AUC(y, probability)` | **0.8136** |
-| Weighted score | `0.60 * F1 + 0.40 * ROC-AUC` | **0.8084** |
+| F1 | `F1(y, probability >= 0.5)` | **0.8101** |
+| ROC-AUC | `ROC-AUC(y, probability)` | **0.8155** |
+| Weighted score | `0.60 * F1 + 0.40 * ROC-AUC` | **0.8123** |
 
-The primary reproducible submission is [`submissions/catboost_all_features_submission.csv`](submissions/catboost_all_features_submission.csv); the selected-20 challenger is [`submissions/catboost_selected20_submission.csv`](submissions/catboost_selected20_submission.csv). No probability rounding or custom threshold is used.
+The strongest reproducible candidate is [`submissions/nasa_power_catboost_lgbm_blend_submission.csv`](submissions/nasa_power_catboost_lgbm_blend_submission.csv). The original all-feature CatBoost submission and selected-20 challenger remain available for comparison. No probability rounding or custom threshold is used.
 
 ## EDA at a glance
 
@@ -53,6 +53,7 @@ The code does not use mortality, demographic, socioeconomic, healthcare, disease
 - [ERA5-Land reanalysis](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land?tab=documentation) — rolling temperature summaries and heat-day features.
 - [NASA MODIS vegetation indices](https://modis.gsfc.nasa.gov/data/dataprod/mod13.php) — NDVI windows.
 - [SRTM terrain](https://lpdaac.usgs.gov/products/srtmgl1v003/) — elevation and slope.
+- [NASA POWER Daily API](https://power.larc.nasa.gov/docs/services/api/temporal/daily/point/) — independent daily temperature, precipitation, humidity, wind, radiation, evapotranspiration, and soil-moisture summaries.
 
 These are climate/environmental covariates joined by the supplied row ID; no target-bearing external dataset is used.
 
@@ -77,10 +78,12 @@ For individual stages:
 
 ```bash
 python scripts/make_eda.py
+python scripts/download_nasa_power.py
 python scripts/tune_hyperparameters.py
 python scripts/train_model.py
 python scripts/select_features.py
 python scripts/train_model.py
+python scripts/blend_models.py
 python scripts/validate_submission.py
 python scripts/make_feature_report.py
 ```

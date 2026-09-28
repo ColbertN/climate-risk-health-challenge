@@ -17,7 +17,7 @@ from sklearn.model_selection import StratifiedKFold
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from climate_health.features import TARGET, build_features, feature_groups, load_competition_data, split_feature_types
+from climate_health.features import TARGET, build_features, feature_groups, load_competition_data, load_external_features, split_feature_types
 from climate_health.postprocess import build_submission
 
 
@@ -51,11 +51,12 @@ def make_model(seed: int, iterations: int = 350, params: dict | None = None) -> 
 
 def run_training(data_dir: str | Path = ".", report_dir: str | Path = "reports", submission_dir: str | Path = "submissions", model_dir: str | Path = "models", use_selected: bool = True, run_name: str = "catboost_ensemble") -> dict:
     train, test, climate = load_competition_data(data_dir)
+    external = load_external_features(data_dir)
     y = train[TARGET].to_numpy(dtype=int)
     raw_features = train.drop(columns=[TARGET])
     combined_raw = pd.concat([raw_features, test], ignore_index=True)
-    X = build_features(raw_features, climate, combined_for_counts=combined_raw)
-    X_test = build_features(test, climate, combined_for_counts=combined_raw)
+    X = build_features(raw_features, climate, combined_for_counts=combined_raw, external_features=external)
+    X_test = build_features(test, climate, combined_for_counts=combined_raw, external_features=external)
     best_params_path = Path(model_dir) / "best_params.json"
     params = {}
     if best_params_path.exists():

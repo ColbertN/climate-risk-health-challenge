@@ -1,0 +1,26 @@
+{
+  "lightgbm": {
+    "f1_default_0_5": 0.8042908224076282,
+    "roc_auc": 0.8153919737844015,
+    "weighted_score": 0.8087312829583375
+  },
+  "xgboost": {
+    "f1_default_0_5": 0.7976019184652278,
+    "roc_auc": 0.8058562809464394,
+    "weighted_score": 0.8009036634577125
+  },
+  "catboost": {
+    "f1_default_0_5": 0.8077197998570408,
+    "roc_auc": 0.809920018776229,
+    "weighted_score": 0.808599887424716
+  },
+  "blend": {
+    "f1_default_0_5": 0.8101445840246504,
+    "roc_auc": 0.8154728751500787,
+    "weighted_score": 0.8122759004748217
+  },
+  "best_catboost_weight": 0.35000000000000003,
+  "best_lightgbm_weight": 0.6499999999999999,
+  "best_xgboost_weight": 0.0,
+  "n_features_after_one_hot": 290
+}

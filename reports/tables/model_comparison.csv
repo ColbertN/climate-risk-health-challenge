@@ -4,3 +4,7 @@ CatBoost selected top 20 features,5-fold stratified CV,20,0.802011,0.814758,0.80
 CatBoost selected top 20 features,2-fold subset search,20,0.810064,0.815116,0.812085,selection estimate only
 CatBoost regularized depth 7,2-fold explicit search,63,0.808792,0.811075,0.809705,tuning winner
 CatBoost balanced depth 6,2-fold explicit search,63,0.809371,0.809550,0.809443,tuning challenger
+NASA POWER CatBoost all features,5-fold stratified CV,112,0.807720,0.809920,0.808600,external-data candidate
+NASA POWER LightGBM,5-fold stratified CV,290 one-hot,0.804291,0.815392,0.808731,blend component
+NASA POWER CatBoost + LightGBM,5-fold OOF weight search,290 one-hot + CatBoost,0.810145,0.815473,0.812276,primary candidate
+NASA POWER target-encoded LightGBM,5-fold stratified CV,304,0.787865,0.781809,0.785442,rejected

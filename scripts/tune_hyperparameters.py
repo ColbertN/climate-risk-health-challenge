@@ -15,7 +15,7 @@ from sklearn.model_selection import StratifiedKFold
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from climate_health.features import TARGET, build_features, load_competition_data, split_feature_types  # noqa: E402
+from climate_health.features import TARGET, build_features, load_competition_data, load_external_features, split_feature_types  # noqa: E402
 
 
 SEARCH_SPACE = [
@@ -26,10 +26,11 @@ SEARCH_SPACE = [
 
 def run_search(data_dir: str | Path = ".", report_dir: str | Path = "reports", model_dir: str | Path = "models") -> pd.DataFrame:
     train, test, climate = load_competition_data(data_dir)
+    external = load_external_features(data_dir)
     y = train[TARGET].to_numpy(dtype=int)
     raw_train = train.drop(columns=[TARGET])
     combined = pd.concat([raw_train, test], ignore_index=True)
-    X = build_features(raw_train, climate, combined_for_counts=combined)
+    X = build_features(raw_train, climate, combined_for_counts=combined, external_features=external)
     numeric, categorical = split_feature_types(X)
     cat_indices = [X.columns.get_loc(col) for col in categorical]
     cv = StratifiedKFold(n_splits=2, shuffle=True, random_state=2026)
