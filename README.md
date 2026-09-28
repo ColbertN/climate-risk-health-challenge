@@ -13,7 +13,7 @@ The goal is to learn patterns from the labelled training data and predict, for e
 
 This is a population-level machine-learning benchmark. It is not a clinical diagnostic system and should not be used to make decisions about individual patients.
 
-The project aims to produce a model that is accurate, reproducible, explainable, and compliant with the competition rules. The practical objective is to improve the hidden leaderboard score while avoiding target leakage.
+The project aims to produce a model that is accurate, reproducible, explainable, and compliant with the competition rules. The practical objective is to build a trustworthy model that generalizes to unseen records while avoiding target leakage.
 
 ## Competition metric
 
@@ -144,7 +144,7 @@ NASA POWER is accessed through its [official Daily Point API](https://power.larc
 
 The main validation protocol is a shuffled, stratified five-fold split. Stratification preserves the target ratio in every fold. The same folds are used to compare models and calculate out-of-fold predictions.
 
-This is more reliable than a single train/validation split, although it cannot reproduce the hidden Zindi public/private split exactly. The first submitted model scored approximately `0.8352` on the public leaderboard; local cross-validation is reported separately and should not be confused with that leaderboard result.
+This is more reliable than a single train/validation split and provides a consistent basis for comparing feature sets and model families.
 
 ### 8. Model development
 
@@ -170,7 +170,7 @@ A smoothed target-encoding LightGBM experiment was evaluated using fold-specific
 
 ### 10. Ensembling
 
-The primary candidate blends external-data CatBoost and LightGBM probabilities. Blend weights are chosen from out-of-fold predictions, not from leaderboard feedback.
+The primary candidate blends external-data CatBoost and LightGBM probabilities. Blend weights are chosen from out-of-fold predictions.
 
 The selected weights are approximately:
 
@@ -188,7 +188,7 @@ The primary submission passed all checks for 1,030 test rows.
 
 ## Results
 
-These are internal five-fold out-of-fold results, not a guarantee of leaderboard performance:
+These are five-fold out-of-fold results from the project validation protocol:
 
 | Candidate | F1 | ROC-AUC | Weighted score | Decision |
 |---|---:|---:|---:|---|
@@ -246,7 +246,3 @@ models/                   Small model configuration and schema files
 ```
 
 Raw challenge files are intentionally excluded from Git by `.gitignore`. The repository contains the code, derived public climate enrichment, methodology, analysis, validation results, and submission outputs needed to understand and reproduce the work.
-
-## Limitations and next steps
-
-Cross-validation is only an estimate of performance on the hidden leaderboard. The public and private Zindi splits may differ from the local folds. Further gains may come from additional compliant climate products, improved spatial validation, more diverse calibrated ensembles, or new public leaderboard feedback. Any future external source must remain climate/environmental and must not reveal target labels.
