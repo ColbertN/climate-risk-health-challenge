@@ -1,65 +1,212 @@
-# Climate Risk & Health Prediction Challenge
+# Climate Risk and Health Prediction Challenge
 
-An auditable, leakage-safe modeling pipeline for the Zindi Climate Risk and Health Prediction Challenge. The task is binary classification: predict whether a recorded death is climate-sensitive and submit both the raw probability and the required default-threshold label.
+## Project purpose
 
-## Current result
+This repository contains a complete machine-learning project for the Zindi **Climate Risk and Health Prediction Challenge**.
 
-The final candidate is a deterministic CatBoost ensemble over five stratified folds. It uses climate-enriched train/test rows, explicit feature engineering, a compact manual hyperparameter comparison, importance-ranked feature selection, and strict submission validation.
+The challenge is based on mortality records from Uganda. Each record contains information such as age, gender, location, date of death, temperature, rainfall, latitude, and longitude. Some records are labelled as climate-sensitive and others are not.
 
-| Metric | Definition | Final run |
-|---|---|---:|
-| F1 | `F1(y, probability >= 0.5)` | **0.8101** |
-| ROC-AUC | `ROC-AUC(y, probability)` | **0.8155** |
-| Weighted score | `0.60 * F1 + 0.40 * ROC-AUC` | **0.8123** |
+The goal is to learn patterns from the labelled training data and predict, for each unseen test record:
 
-The strongest reproducible candidate is [`submissions/nasa_power_catboost_lgbm_blend_submission.csv`](submissions/nasa_power_catboost_lgbm_blend_submission.csv). The original all-feature CatBoost submission and selected-20 challenger remain available for comparison. No probability rounding or custom threshold is used.
+- the probability that the death is climate-sensitive; and
+- a binary prediction derived from that probability using the required default threshold of `0.5`.
 
-## EDA at a glance
+This is a population-level machine-learning benchmark. It is not a clinical diagnostic system and should not be used to make decisions about individual patients.
 
-The supplied records are imbalanced toward climate-sensitive deaths, span multiple years and Ugandan locations, and include both demographic and environmental signals. The repository generates the full analysis under [`reports/figures`](reports/figures):
+The project aims to produce a model that is accurate, reproducible, explainable, and compliant with the competition rules. The practical objective is to improve the hidden leaderboard score while avoiding target leakage.
+
+## Competition metric
+
+The challenge combines two metrics:
+
+```text
+Final score = 0.60 x F1-Score + 0.40 x ROC-AUC
+```
+
+F1 is weighted more heavily because it measures how well the model identifies climate-sensitive cases while balancing precision and recall. ROC-AUC measures how well the model ranks climate-sensitive cases above non-sensitive cases across probability thresholds.
+
+The required submission columns are:
+
+| Column | Meaning |
+|---|---|
+| `ID` | Original test-record identifier |
+| `TargetF1` | Binary prediction from `TargetRAUC >= 0.5` |
+| `TargetRAUC` | Raw predicted probability |
+
+The pipeline does not tune a custom submission threshold and does not round the submitted probabilities.
+
+## Machine-learning lifecycle
+
+### 1. Problem framing
+
+This is a supervised binary-classification problem:
+
+- input: demographic, geographic, temporal, and environmental variables;
+- target: `is_climate_sensitive`;
+- output: a probability and a default-threshold class prediction; and
+- success criterion: the weighted F1/ROC-AUC competition score.
+
+The target is imbalanced, so accuracy alone would be misleading. The workflow therefore tracks F1, ROC-AUC, and the official weighted score throughout development.
+
+### 2. Data understanding
+
+The supplied files are:
+
+- `Train.csv`: 3,146 labelled mortality records;
+- `Test.csv`: 1,030 records for prediction;
+- `climate_features.csv`: 4,176 climate and environmental enrichments joined by `ID`;
+- `data_dictionary.csv`: descriptions of the original variables; and
+- `downloaded_climate_features_data_dictionary.csv`: descriptions of the supplied environmental features.
+
+The records cover multiple years and locations in Uganda. The training target is imbalanced. The project explores target balance, missingness, temporal patterns, demographic patterns, climate distributions, correlations, and geographic structure before modeling.
+
+### 3. Data governance and leakage control
+
+Only climate and environmental external data are used. The project does not use external mortality, health, disease, demographic, socioeconomic, census, healthcare-access, or cause-of-death data.
+
+The pipeline never joins an external mortality source to recover the target for a test row. Such a join would reveal the answer rather than provide a legitimate covariate.
+
+Unsupervised support counts are calculated from train and test covariates without using the target. Validation predictions are generated from folds that do not contain the corresponding validation labels.
+
+### 4. Exploratory data analysis
+
+The EDA answers practical questions before modeling:
+
+- How imbalanced is the target?
+- Does the climate-sensitive rate vary by month or year?
+- Are there differences by age group, gender, or zone?
+- Which climate variables have different distributions across the two classes?
+- Are there geographic clusters or sparse regions?
+- Which variables contain missing values or strong correlations?
+
+Generated outputs include target balance, temporal rates, demographic rates, climate distributions, spatial plots, a correlation heatmap, missingness, and feature importance. The figures are under [`reports/figures`](reports/figures), with numeric tables under [`reports/tables`](reports/tables).
 
 ![Target balance](reports/figures/01_target_balance.png)
 
-![Temporal rates](reports/figures/02_temporal_target_rates.png)
-
-![Demographic rates](reports/figures/03_demographic_target_rates.png)
+![Temporal target rates](reports/figures/02_temporal_target_rates.png)
 
 ![Climate distributions](reports/figures/04_climate_distributions.png)
 
 ![Spatial distribution](reports/figures/05_spatial_distribution.png)
 
-![Correlation heatmap](reports/figures/06_correlation_heatmap.png)
+### 5. Feature engineering
+
+The raw variables are transformed into features representing plausible climate-health mechanisms and stable geographic structure.
+
+#### Time features
+
+- year, month, quarter, week, and day of year;
+- sine/cosine seasonal cycles; and
+- date support counts.
+
+#### Demographic features
+
+- age squared;
+- infant, child, working-age, and older-adult indicators;
+- age bands; and
+- missing-age indicators.
+
+#### Geographic features
+
+- location, district, and region text fields;
+- latitude and longitude squares;
+- latitude-longitude interaction;
+- rounded spatial cells; and
+- supplied elevation and slope.
+
+#### Climate features
+
+- temperature ranges and temperature-centre contrasts;
+- rainfall log transforms;
+- 7-day, 30-day, and 90-day rainfall ratios;
+- rainfall intensity and extreme-rainfall share;
+- temperature-window changes;
+- hot-day share;
+- NDVI change between windows; and
+- heat-stress and wet-heat proxies.
+
+The purpose is to expose seasonal stress, rainfall accumulation, heat extremes, vegetation conditions, and geographic vulnerability to nonlinear models.
+
+### 6. External climate data enrichment
+
+The challenge-supplied climate file contains features derived from external environmental products:
+
+- [CHIRPS rainfall](https://chc.ucsb.edu/data/chirps/);
+- [ERA5-Land reanalysis](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land?tab=documentation);
+- [NASA MODIS vegetation indices](https://modis.gsfc.nasa.gov/data/dataprod/mod13.php); and
+- [SRTM terrain](https://lpdaac.usgs.gov/products/srtmgl1v003/).
+
+The project additionally downloads public NASA POWER daily weather data using eight 0.5-degree environmental grid cells covering the competition records. The downloader creates pre-death rolling summaries for temperature, precipitation, humidity, wind, solar radiation, evapotranspiration, and soil wetness.
+
+NASA POWER is accessed through its [official Daily Point API](https://power.larc.nasa.gov/docs/services/api/temporal/daily/point/). The cached result is stored in [`data/external/nasa_power_features.csv`](data/external/nasa_power_features.csv), with source metadata in the same folder.
+
+### 7. Validation design
+
+The main validation protocol is a shuffled, stratified five-fold split. Stratification preserves the target ratio in every fold. The same folds are used to compare models and calculate out-of-fold predictions.
+
+This is more reliable than a single train/validation split, although it cannot reproduce the hidden Zindi public/private split exactly. The first submitted model scored approximately `0.8352` on the public leaderboard; local cross-validation is reported separately and should not be confused with that leaderboard result.
+
+### 8. Model development
+
+#### CatBoost
+
+CatBoost is used because it handles mixed numeric and categorical variables well, captures nonlinear interactions, and represents location-related categories without fragile manual target encodings.
+
+#### LightGBM
+
+LightGBM is trained on one-hot encoded features as a complementary model. Its different tree-building behaviour provides ensemble diversity.
+
+#### XGBoost
+
+XGBoost was tested as a third ensemble member. Its out-of-fold score was weaker and its selected blend weight was zero, so it is retained as an experiment rather than used in the primary submission.
+
+### 9. Hyperparameter tuning and feature selection
+
+The project uses a small explicit search rather than an AutoML system. The tested CatBoost configurations vary tree depth, learning rate, regularisation, and random strength.
+
+Feature importance is averaged across validation folds. Importance-ranked subsets are evaluated to test whether removing weak or noisy variables improves generalisation. The top-20 subset was retained as a challenger, but the full engineered feature set performed better under the full five-fold comparison.
+
+A smoothed target-encoding LightGBM experiment was evaluated using fold-specific mappings. Its score was weaker, so it was rejected.
+
+### 10. Ensembling
+
+The primary candidate blends external-data CatBoost and LightGBM probabilities. Blend weights are chosen from out-of-fold predictions, not from leaderboard feedback.
+
+The selected weights are approximately:
+
+```text
+35% CatBoost + 65% LightGBM
+```
+
+XGBoost receives zero weight because it did not improve the out-of-fold score.
+
+### 11. Post-processing and submission validation
+
+Before writing a submission, the pipeline checks exact column names, test-row count, test-ID order, ID uniqueness, binary labels, finite probabilities, probability bounds, and consistency between `TargetF1` and `TargetRAUC >= 0.5`.
+
+The primary submission passed all checks for 1,030 test rows.
+
+## Results
+
+These are internal five-fold out-of-fold results, not a guarantee of leaderboard performance:
+
+| Candidate | F1 | ROC-AUC | Weighted score | Decision |
+|---|---:|---:|---:|---|
+| Original CatBoost all features | 0.8049 | 0.8136 | 0.8084 | baseline |
+| NASA POWER CatBoost | 0.8077 | 0.8099 | 0.8086 | retained component |
+| NASA POWER LightGBM | 0.8043 | 0.8154 | 0.8087 | retained component |
+| NASA POWER CatBoost + LightGBM | **0.8101** | **0.8155** | **0.8123** | **primary candidate** |
+| NASA POWER target-encoded LightGBM | 0.7879 | 0.7818 | 0.7854 | rejected |
+
+The primary submission is [`submissions/nasa_power_catboost_lgbm_blend_submission.csv`](submissions/nasa_power_catboost_lgbm_blend_submission.csv).
+
+Feature importance is available in [`reports/tables/feature_importance.csv`](reports/tables/feature_importance.csv) and [`reports/tables/lightgbm_feature_importance.csv`](reports/tables/lightgbm_feature_importance.csv).
 
 ![Feature importance](reports/figures/08_feature_importance.png)
 
-The numeric EDA tables are in [`reports/tables`](reports/tables), including dataset dimensions, group-level positive rates, CV fold results, feature importance, and feature-group importance.
+## Reproduce the project
 
-## Modeling approach
-
-1. Merge `Train.csv` and `Test.csv` with `climate_features.csv` by the provided `ID` key.
-2. Derive calendar seasonality, age bands, temperature contrasts, rainfall accumulation ratios, NDVI change, heat/wetness proxies, spatial cells, and unsupervised support counts.
-3. Fit CatBoost directly on mixed numeric/categorical features, preserving nonlinear climate interactions and location categories without target encoding.
-4. Compare a small explicit parameter grid, then evaluate an importance-ranked top-`k` feature subset.
-5. Average out-of-fold test predictions across five folds and produce labels exactly at `0.5`.
-6. Validate row count, ID uniqueness, finite probabilities, probability bounds, required columns, and row order before writing the submission.
-
-The code does not use mortality, demographic, socioeconomic, healthcare, disease, or cause-of-death data from outside the competition. This follows the organizer ruling recorded in the supplied participant comments: external additions are limited to climate/environmental observations and derived environmental indicators; record-level label lookups are excluded.
-
-## Climate data used
-
-`climate_features.csv` is the challenge-provided enrichment and is used in every final model. Its documented source products are:
-
-- [CHIRPS rainfall](https://chc.ucsb.edu/data/chirps/) — rolling rainfall totals, wet-day counts, and extremes.
-- [ERA5-Land reanalysis](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land?tab=documentation) — rolling temperature summaries and heat-day features.
-- [NASA MODIS vegetation indices](https://modis.gsfc.nasa.gov/data/dataprod/mod13.php) — NDVI windows.
-- [SRTM terrain](https://lpdaac.usgs.gov/products/srtmgl1v003/) — elevation and slope.
-- [NASA POWER Daily API](https://power.larc.nasa.gov/docs/services/api/temporal/daily/point/) — independent daily temperature, precipitation, humidity, wind, radiation, evapotranspiration, and soil-moisture summaries.
-
-These are climate/environmental covariates joined by the supplied row ID; no target-bearing external dataset is used.
-
-## Reproduce
-
-Put the challenge files in the project root (or pass another `--data-dir`):
+Place the challenge files in the project root:
 
 ```text
 Train.csv
@@ -67,29 +214,39 @@ Test.csv
 climate_features.csv
 ```
 
-Install dependencies and run:
+Install the open-source dependencies:
 
 ```bash
 pip install -r requirements.txt
-python scripts/run_pipeline.py
 ```
 
-For individual stages:
+Run the lifecycle from beginning to end:
 
 ```bash
 python scripts/make_eda.py
 python scripts/download_nasa_power.py
 python scripts/tune_hyperparameters.py
-python scripts/train_model.py
-python scripts/select_features.py
-python scripts/train_model.py
+python scripts/train_model.py --all-features --run-name nasa_power_all_features
 python scripts/blend_models.py
-python scripts/validate_submission.py
+python scripts/validate_submission.py --submission submissions/nasa_power_catboost_lgbm_blend_submission.csv
 python scripts/make_feature_report.py
 ```
 
-Generated model binaries are intentionally ignored by Git. The public repository contains source, methodology, EDA, validation tables, and the submission schema; the raw challenge files remain local by default.
+The repository also contains individual scripts for feature selection, target-encoding experiments, feature-importance plots, and submission validation.
 
-## Important caveat
+## Repository map
 
-Cross-validation is an estimate, not a leaderboard guarantee. The public/private split is hidden, so stability across folds and strict leakage controls matter more than chasing one optimistic validation split.
+```text
+src/climate_health/       Reusable feature engineering and submission logic
+scripts/                  EDA, download, tuning, training, blending, and validation
+data/external/            Cached NASA POWER climate enrichment and metadata
+reports/                  EDA figures, validation tables, model summaries
+submissions/              Competition-ready CSV candidates
+models/                   Small model configuration and schema files
+```
+
+Raw challenge files are intentionally excluded from Git by `.gitignore`. The repository contains the code, derived public climate enrichment, methodology, analysis, validation results, and submission outputs needed to understand and reproduce the work.
+
+## Limitations and next steps
+
+Cross-validation is only an estimate of performance on the hidden leaderboard. The public and private Zindi splits may differ from the local folds. Further gains may come from additional compliant climate products, improved spatial validation, more diverse calibrated ensembles, or new public leaderboard feedback. Any future external source must remain climate/environmental and must not reveal target labels.
